@@ -61,7 +61,7 @@ int connectRemoteServer(char *host_addr, int port_num)
         fprintf(stderr, "Error in connecting !\n");
         return -1;
     }
-    remote remoteSocket;
+    return remoteSocket;
 }
 
 int handle_request(int clientSocketId, ParsedRequest *request, char *tempReq)
@@ -98,6 +98,55 @@ int handle_request(int clientSocketId, ParsedRequest *request, char *tempReq)
     }
 
     int remoteSocketId = connectRemoteServer(request->host, server_port);
+
+    if (remoteSocketId < 0)
+    {
+        return -1;
+    }
+
+    int bytes_send = send(remoteSocketId, buff, strlen(buff), 0);
+
+    bzero(buff, MAX_BYTES);
+
+    bytes_send = recv(remoteSocketId, buff, MAX_BYTES - 1, 0);
+    char *temp_buffer = (char *)malloc(sizeof(char) * MAX_BYTES); // temp buffer
+    int temp_buffer_size = MAX_BYTES;
+    int temp_buffer_index = 0;
+
+    while (bytes_send > 0)
+    {
+        // sending response from remote server to client socket
+        bytes_send = send(clientSocketId, buff, bytes_send, 0);
+
+        for (int i = 0; i < bytes_send / sizeof(char); i++)
+        {
+            // copying the response to tempbuff to be put into cache.
+            temp_buffer[temp_buffer_index] = buff[i];
+            // printf("%c",buf[i]); // Response Printing
+            temp_buffer_index++;
+        }
+        // if memory of temp buff not enough reallocating it more memory
+        temp_buffer_size += MAX_BYTES;
+        temp_buffer = (char *)realloc(temp_buffer, temp_buffer_size);
+
+        if (bytes_send < 0)
+        {
+            perror("Error in sending data to client socket.\n");
+            break;
+        }
+        bzero(buff, MAX_BYTES);
+
+        bytes_send = recv(remoteSocketId, buff, MAX_BYTES - 1, 0);
+    }
+    temp_buffer[temp_buffer_index] = '\0';
+    free(buff);
+    // adding element to lru cache.
+    add_cache_element(temp_buffer, strlen(temp_buffer), tempReq);
+    printf("Done\n");
+    free(temp_buffer);
+
+    close(remoteSocketId);
+    return 0;
 }
 
 void *thread_fn(void *socketNew)
