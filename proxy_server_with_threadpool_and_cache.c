@@ -19,7 +19,7 @@
 #define MAX_CLIENTS 400
 #define MAX_SIZE 200 * (1 << 20)
 #define MAX_ELEMENT_SIZE 10 * (1 << 20)
-#define THREAD_POOL_SIZE 10
+#define THREAD_POOL_SIZE 200
 
 typedef struct cache_element cache_element;
 
@@ -59,10 +59,12 @@ int checkHTTPversion(char *msg)
 
     if (strncmp(msg, "HTTP/1.1", 8) == 0)
     {
+        printf("HTTP/1.1");
         version = 1;
     }
     else if (strncmp(msg, "HTTP/1.0", 8) == 0)
     {
+        printf("HTTP/1.0");
         version = 1; // Handling this similar to version 1.1
     }
     else
@@ -335,6 +337,10 @@ void handle_client(int client_socket)
         }
         else
         {
+            printf("Parsed Request Host: %s\n", request->host);
+            printf("Parsed Request Path: %s\n", request->path);
+            printf("Parsed Request Version: %s\n", request->version);
+
             bzero(buffer, MAX_BYTES);
             if (!strcmp(request->method, "GET"))
             {
