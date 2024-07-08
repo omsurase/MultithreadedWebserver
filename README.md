@@ -2,7 +2,8 @@
 
 This project implements a multithreaded HTTP proxy server in C++. It features two server implementations (ThreadPool and Semaphore-based) and two caching strategies (LRU and LFU).
 
-## Introduction
+<details>
+<summary>## Introduction</summary>
 
 This proxy server acts as an intermediary for requests from clients seeking resources from other servers. It incorporates several advanced concepts:
 
@@ -13,19 +14,29 @@ This proxy server acts as an intermediary for requests from clients seeking reso
 - **LRU (Least Recently Used)**: A caching algorithm that discards the least recently used items first.
 - **LFU (Least Frequently Used)**: A caching algorithm that discards the least frequently used items first.
 - **Factory Design Pattern**: Used to create different types of servers and caches based on runtime configuration.
+</details>
 
-## Features
+<details>
+<summary>## Features</summary>
 
-- Multithreaded server implementations:
+<details>
+<summary>- Multithreaded server implementations:</summary>
   - ThreadPool-based server
   - Semaphore-based server
-- Caching strategies:
+</details>
+
+<details>
+<summary>- Caching strategies:</summary>
   - Least Recently Used (LRU) cache
   - Least Frequently Used (LFU) cache
+</details>
+
 - Factory design pattern for server and cache creation
 - Configurable number of threads and cache size
+</details>
 
-## Project Structure
+<details>
+<summary>## Project Structure</summary>
 
 The project consists of several C++ files implementing different components:
 
@@ -38,17 +49,21 @@ The project consists of several C++ files implementing different components:
 - [`LRUCache.cpp/hpp`](LRUCache.hpp): Least Recently Used cache implementation
 - [`LFUCache.cpp/hpp`](LFUCache.hpp): Least Frequently Used cache implementation
 - [`ThreadPool.cpp/hpp`](ThreadPool.hpp): ThreadPool implementation
-- [`Proxy_utils.cpp/hpp`](ThreadPool.hpp)Various utility classes and headers
+- [`ProxyUtils.cpp/hpp`](ProxyUtils.hpp)Various utility classes and headers
+</details>
 
-## Building the Project
-
+<details>
+<summary>## Building the Project</summary>
 To build the project, ensure you have a Linux machine with C++ compiler and `make` installed. Then run:
 
 ```
     make
 ```
 
-## Running the Server
+</details>
+
+<details>
+<summary>## Running the Server</summary>
 
 To run the server, use the following command format:
 
@@ -72,7 +87,10 @@ Example:
 
 This command starts a ThreadPool-based server with LRU caching on port 8080, using 30 threads and a cache size of 10000 elements.
 
-## Testing the Proxy Server
+</details>
+
+<details>
+<summary>## Testing the Proxy Server</summary>
 
 Once the server is running, you can test it using Postman or any HTTP client. Here's how to use Postman:
 
@@ -88,7 +106,10 @@ This sends a request to `http://example.com` through your proxy server running o
 
 The proxy server should forward your request to the target server and return the response. You can verify the proxy's functionality by checking the response headers or timing multiple requests to see if caching is working.
 
-## Implementation Details
+</details>
+
+<details>
+<summary>## Implementation Details</summary>
 
 The server uses a factory pattern to create the appropriate server and cache instances based on command-line arguments. It supports two types of server implementations:
 
@@ -99,7 +120,11 @@ Two caching strategies are implemented:
 
 1. LRU (Least Recently Used): Discards the least recently used items first when the cache is full.
 2. LFU (Least Frequently Used): Discards the least frequently used items first when the cache is full.
+</details>
 
-## Contributing
+<details>
+<summary>## Contributing</summary>
 
 Contributions to improve the server's functionality or performance are welcome. Please submit pull requests or open issues to discuss proposed changes.
+
+</details>
