@@ -27,80 +27,156 @@ This proxy server acts as an intermediary for requests from clients seeking reso
 
 ## Project Structure
 
-The project consists of several C++ files implementing different components:
+After reorganization, the project uses a conventional `src/` + `include/` layout:
 
-- [`main.cpp`](main.cpp): Entry point of the application
-- [`ServerFactory.cpp/hpp`](ServerFactory.hpp): Factory for creating server and cache instances
-- [`HTTPServer.hpp`](HTTPServer.hpp): Base class for HTTP server implementations
-- [`ThreadPoolServer.cpp/hpp`](ThreadPoolServer.hpp): ThreadPool-based server implementation
-- [`SemaphoreServer.cpp/hpp`](SemaphoreServer.hpp): Semaphore-based server implementation
-- [`CacheStrategy.hpp`](CacheStrategy.hpp): Base class for cache strategies
-- [`LRUCache.cpp/hpp`](LRUCache.hpp): Least Recently Used cache implementation
-- [`LFUCache.cpp/hpp`](LFUCache.hpp): Least Frequently Used cache implementation
-- [`ThreadPool.cpp/hpp`](ThreadPool.hpp): ThreadPool implementation
-- [`ProxyUtils.cpp/hpp`](ProxyUtils.hpp)Various utility classes and headers
+- `src/`
+  - `main.cpp`
+  - `core/`
+    - `ServerFactory.cpp`
+    - `ThreadPool.cpp`
+  - `servers/`
+    - `ThreadPoolServer.cpp`
+    - `SemaphoreServer.cpp`
+  - `cache/`
+    - `LRUCache.cpp`
+    - `LFUCache.cpp`
+  - `utils/`
+    - `ProxyUtils.cpp`
+  - `c/`
+    - `proxy_parse.c`
 
-## Building the Project
+- `include/`
+  - `core/`
+    - `HTTPServer.hpp`
+    - `ServerFactory.hpp`
+    - `ThreadPool.hpp`
+  - `servers/`
+    - `ThreadPoolServer.hpp`
+    - `SemaphoreServer.hpp`
+  - `cache/`
+    - `CacheStrategy.hpp`
+    - `LRUCache.hpp`
+    - `LFUCache.hpp`
+  - `utils/`
+    - `ProxyUtils.hpp`
+  - `c/`
+    - `proxy_parse.h`
 
-To build the project, ensure you have a Linux machine with C++ compiler and `make` installed. Then run:
+Legacy examples are under `examples/v1/`.
 
+## Reorganize files (PowerShell)
+
+Run from the project root on Windows PowerShell to create the new structure and move files:
+
+```powershell
+$root = "$PWD"
+New-Item -ItemType Directory -Force -Path @(
+  "src/core","src/servers","src/cache","src/utils","src/c",
+  "include/core","include/servers","include/cache","include/utils","include/c",
+  "examples"
+) | Out-Null
+
+Move-Item -Force main.cpp src/main.cpp
+Move-Item -Force ThreadPool.cpp src/core/ThreadPool.cpp
+Move-Item -Force ServerFactory.cpp src/core/ServerFactory.cpp
+Move-Item -Force ThreadPoolServer.cpp src/servers/ThreadPoolServer.cpp
+Move-Item -Force SemaphoreServer.cpp src/servers/SemaphoreServer.cpp
+Move-Item -Force LRUCache.cpp src/cache/LRUCache.cpp
+Move-Item -Force LFUCache.cpp src/cache/LFUCache.cpp
+Move-Item -Force ProxyUtils.cpp src/utils/ProxyUtils.cpp
+Move-Item -Force proxy_parse.c src/c/proxy_parse.c
+
+Move-Item -Force HTTPServer.hpp include/core/HTTPServer.hpp
+Move-Item -Force ThreadPool.hpp include/core/ThreadPool.hpp
+Move-Item -Force ServerFactory.hpp include/core/ServerFactory.hpp
+Move-Item -Force ThreadPoolServer.hpp include/servers/ThreadPoolServer.hpp
+Move-Item -Force SemaphoreServer.hpp include/servers/SemaphoreServer.hpp
+Move-Item -Force CacheStrategy.hpp include/cache/CacheStrategy.hpp
+Move-Item -Force LRUCache.hpp include/cache/LRUCache.hpp
+Move-Item -Force LFUCache.hpp include/cache/LFUCache.hpp
+Move-Item -Force ProxyUtils.hpp include/utils/ProxyUtils.hpp
+Move-Item -Force proxy_parse.h include/c/proxy_parse.h
+
+If (Test-Path .\v1) { Move-Item -Force .\v1 .\examples\v1 }
 ```
-    make
+
+Note: All source includes were updated to use `-Iinclude` with paths like `core/ServerFactory.hpp`, `cache/CacheStrategy.hpp`, etc.
+
+## Build and run with Docker
+
+You can build and run the project entirely using Docker (no local toolchain required):
+
+```powershell
+docker build -t proxy-server .
+
+# Example: Threadpool + LRUCache on port 8080
+docker run --rm -p 8080:8080 proxy-server Threadpool LRUCache 8080 25 100
+
+# Example: Semaphore + LFUCache on port 9090
+docker run --rm -p 9090:9090 proxy-server Semaphore LFUCache 9090 25 100
 ```
 
-## Running the Server
+### Start, test, stop (PowerShell)
 
-To run the server, use the following command format:
+Run the container in the background with a name, test a few URLs, then stop it.
 
-```
-    ./proxy_server <server_type> <cache_type> <port> [num_threads] [cache_size]
-```
+```powershell
+# Threadpool + LRUCache
+$PORT = 8080
+$NAME = "proxy-$PORT"
+docker run --rm -d --name $NAME -p $PORT:$PORT proxy-server Threadpool LRUCache $PORT 25 100
+Start-Sleep -Seconds 2
 
-Where:
+# Test a few requests (repeat a URL to see cache hit in logs)
+curl "http://localhost:$PORT/http://example.com"
+curl "http://localhost:$PORT/http://www.google.com"
+curl "http://localhost:$PORT/http://www.google.com"  # cache hit expected
 
-- `<server_type>`: Either "Threadpool" or "Semaphore"
-- `<cache_type>`: Either "LRUCache" or "LFUCache"
-- `<port>`: The port number to run the server on
-- `[num_threads]`: (Optional) Number of threads for the server (default: 25)
-- `[cache_size]`: (Optional) Maximum number of elements in the cache (default: 100)
-
-Example:
-
-```
-    ./proxy_server Threadpool LRUCache 8080 30 100
+# Stop and remove the container
+docker stop $NAME
 ```
 
-This command starts a ThreadPool-based server with LRU caching on port 8080, using 30 threads and a cache size of 10000 elements.
+Try another configuration (Semaphore + LFUCache) on a different port:
 
-## Testing the Proxy Server
+```powershell
+$PORT = 9090
+$NAME = "proxy-$PORT"
+docker run --rm -d --name $NAME -p $PORT:$PORT proxy-server Semaphore LFUCache $PORT 50 200
+Start-Sleep -Seconds 2
 
-Once the server is running, you can test it using Postman or any HTTP client. Here's how to use Postman:
+curl "http://localhost:$PORT/http://example.com"
+curl "http://localhost:$PORT/http://www.wikipedia.org"
+curl "http://localhost:$PORT/http://www.wikipedia.org"  # cache hit expected
 
-1. Open Postman and create a new request.
-2. Set the request type to GET (or the appropriate HTTP method).
-3. Enter the URL you want to access, but replace the host and port with your proxy server's address. For example:
-
+docker stop $NAME
 ```
-  http://localhost:8080/http://example.com
+
+### Arguments
+
+`./proxy_server <server_type> <cache_type> <port> [num_threads] [cache_size]`
+
+- `server_type`: `Threadpool` or `Semaphore`
+- `cache_type`: `LRUCache` or `LFUCache`
+- `port`: host/container port to bind
+- `num_threads`: optional, default 25
+- `cache_size`: optional, default 100
+
+## Test the proxy
+
+- **cURL**:
+  - `curl "http://localhost:8080/http://example.com"`
+- **Browser/Postman**:
+  - Request URL: `http://localhost:8080/http://example.com`
+  - Repeat the same URL to observe cache hits in the container logs.
+
+## Local build (optional)
+
+If you are on Linux and prefer local builds:
+
+```bash
+make clean && make -j
+./proxy_server Threadpool LRUCache 8080 25 100
 ```
-
-This sends a request to `http://example.com` through your proxy server running on `localhost:8080`.
-
-4. Send the request and observe the response.
-
-The proxy server should forward your request to the target server and return the response. You can verify the proxy's functionality by checking the response headers or timing multiple requests to see if caching is working.
-
-## Implementation Details
-
-The server uses a factory pattern to create the appropriate server and cache instances based on command-line arguments. It supports two types of server implementations:
-
-1. ThreadPool-based server: Uses a pool of worker threads to handle incoming connections.
-2. Semaphore-based server: Uses semaphores to control concurrent access to server resources.
-
-Two caching strategies are implemented:
-
-1. LRU (Least Recently Used): Discards the least recently used items first when the cache is full.
-2. LFU (Least Frequently Used): Discards the least frequently used items first when the cache is full.
 
 ## Contributing
 

@@ -1,12 +1,11 @@
-#include "ThreadPoolServer.hpp"
-#include "ProxyUtils.hpp"
+#include "servers/ThreadPoolServer.hpp"
+#include "utils/ProxyUtils.hpp"
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
 #include <string.h>
-extern "C"
-{
-#include "proxy_parse.h"
+extern "C" {
+#include "c/proxy_parse.h"
 }
 #include <iostream>
 // HERE after every response is sent to client we close the connection . objective here to make sure other clients get turn too

@@ -1,5 +1,5 @@
 #pragma once
-#include "HTTPServer.hpp"
+#include "core/HTTPServer.hpp"
 #include <semaphore.h>
 
 class SemaphoreServer : public HTTPServer

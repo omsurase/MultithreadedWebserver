@@ -1,5 +1,5 @@
-#include "SemaphoreServer.hpp"
-#include "ProxyUtils.hpp"
+#include "servers/SemaphoreServer.hpp"
+#include "utils/ProxyUtils.hpp"
 #include <pthread.h>
 #include <signal.h>
 #include <sys/socket.h>
@@ -9,9 +9,8 @@
 #include <string.h>
 #include <stdexcept>
 
-extern "C"
-{
-#include "proxy_parse.h"
+extern "C" {
+#include "c/proxy_parse.h"
 }
 
 volatile sig_atomic_t running = 1;

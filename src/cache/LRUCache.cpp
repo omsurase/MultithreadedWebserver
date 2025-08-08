@@ -1,4 +1,4 @@
-#include "./LRUCache.hpp"
+#include "cache/LRUCache.hpp"
 #include <cstring>
 
 LRUCache::LRUCache(size_t cap) : capacity(cap) {}

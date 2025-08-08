@@ -1,7 +1,9 @@
 #pragma once
 #include <string>
-#include "./CacheStrategy.hpp"
-#include "./proxy_parse.h"
+#include "cache/CacheStrategy.hpp"
+
+// Forward declaration to avoid pulling C headers into C++ headers
+struct ParsedRequest;
 
 int createServerSocket(int port);
 char *convertRequestToString(struct ParsedRequest *req);

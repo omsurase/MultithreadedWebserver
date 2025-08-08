@@ -2,8 +2,8 @@
 #include <iostream>
 #include <string>
 #include <memory>
-#include "./ServerFactory.hpp"
-#include "./HTTPServer.hpp"
+#include "core/ServerFactory.hpp"
+#include "core/HTTPServer.hpp"
 
 int main(int argc, char *argv[])
 {

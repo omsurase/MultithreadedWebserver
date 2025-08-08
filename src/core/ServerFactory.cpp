@@ -1,8 +1,8 @@
-#include "ServerFactory.hpp"
-#include "ThreadPoolServer.hpp"
-#include "SemaphoreServer.hpp"
-#include "./LRUCache.hpp"
-#include "./LFUCache.hpp"
+#include "core/ServerFactory.hpp"
+#include "servers/ThreadPoolServer.hpp"
+#include "servers/SemaphoreServer.hpp"
+#include "cache/LRUCache.hpp"
+#include "cache/LFUCache.hpp"
 
 std::unique_ptr<HTTPServer> ServerFactory::createHTTPServer(const std::string &serverType, const std::string &cacheType, int numThreads, int cacheSize)
 {

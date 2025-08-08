@@ -1,6 +1,6 @@
 #pragma once
-#include "HTTPServer.hpp"
-#include "ThreadPool.hpp"
+#include "core/HTTPServer.hpp"
+#include "core/ThreadPool.hpp"
 
 class ThreadPoolServer : public HTTPServer
 {

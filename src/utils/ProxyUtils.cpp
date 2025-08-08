@@ -1,7 +1,6 @@
-#include "ProxyUtils.hpp"
-extern "C"
-{
-#include "proxy_parse.h"
+#include "utils/ProxyUtils.hpp"
+extern "C" {
+#include "c/proxy_parse.h"
 }
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -9,7 +8,7 @@ extern "C"
 #include <unistd.h>
 #include <cstring>
 #include <netdb.h>
-#include "./CacheStrategy.hpp"
+#include "cache/CacheStrategy.hpp"
 
 int createServerSocket(int port)
 {

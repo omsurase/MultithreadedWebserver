@@ -1,7 +1,7 @@
 // ServerFactory.hpp
 #pragma once
-#include "./HTTPServer.hpp"
-#include "./CacheStrategy.hpp"
+#include "core/HTTPServer.hpp"
+#include "cache/CacheStrategy.hpp"
 
 class ServerFactory
 {
