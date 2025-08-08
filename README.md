@@ -64,44 +64,6 @@ After reorganization, the project uses a conventional `src/` + `include/` layout
 
 Legacy examples are under `examples/v1/`.
 
-## Reorganize files (PowerShell)
-
-Run from the project root on Windows PowerShell to create the new structure and move files:
-
-```powershell
-$root = "$PWD"
-New-Item -ItemType Directory -Force -Path @(
-  "src/core","src/servers","src/cache","src/utils","src/c",
-  "include/core","include/servers","include/cache","include/utils","include/c",
-  "examples"
-) | Out-Null
-
-Move-Item -Force main.cpp src/main.cpp
-Move-Item -Force ThreadPool.cpp src/core/ThreadPool.cpp
-Move-Item -Force ServerFactory.cpp src/core/ServerFactory.cpp
-Move-Item -Force ThreadPoolServer.cpp src/servers/ThreadPoolServer.cpp
-Move-Item -Force SemaphoreServer.cpp src/servers/SemaphoreServer.cpp
-Move-Item -Force LRUCache.cpp src/cache/LRUCache.cpp
-Move-Item -Force LFUCache.cpp src/cache/LFUCache.cpp
-Move-Item -Force ProxyUtils.cpp src/utils/ProxyUtils.cpp
-Move-Item -Force proxy_parse.c src/c/proxy_parse.c
-
-Move-Item -Force HTTPServer.hpp include/core/HTTPServer.hpp
-Move-Item -Force ThreadPool.hpp include/core/ThreadPool.hpp
-Move-Item -Force ServerFactory.hpp include/core/ServerFactory.hpp
-Move-Item -Force ThreadPoolServer.hpp include/servers/ThreadPoolServer.hpp
-Move-Item -Force SemaphoreServer.hpp include/servers/SemaphoreServer.hpp
-Move-Item -Force CacheStrategy.hpp include/cache/CacheStrategy.hpp
-Move-Item -Force LRUCache.hpp include/cache/LRUCache.hpp
-Move-Item -Force LFUCache.hpp include/cache/LFUCache.hpp
-Move-Item -Force ProxyUtils.hpp include/utils/ProxyUtils.hpp
-Move-Item -Force proxy_parse.h include/c/proxy_parse.h
-
-If (Test-Path .\v1) { Move-Item -Force .\v1 .\examples\v1 }
-```
-
-Note: All source includes were updated to use `-Iinclude` with paths like `core/ServerFactory.hpp`, `cache/CacheStrategy.hpp`, etc.
-
 ## Build and run with Docker
 
 You can build and run the project entirely using Docker (no local toolchain required):
