@@ -1,6 +1,25 @@
-version: '3.8'
-
 services:
+  # Configurable Proxy Server
+  proxy-server:
+    build: .
+    ports:
+      - "${PROXY_PORT:-8080}:${PROXY_PORT:-8080}"
+    command: 
+      - "${SERVER_TYPE:-Threadpool}"
+      - "${CACHE_TYPE:-LRUCache}"
+      - "${PROXY_PORT:-8080}"
+      - "${THREAD_COUNT:-25}"
+      - "${CACHE_SIZE:-100}"
+    container_name: "${CONTAINER_NAME:-proxy-server}"
+    restart: unless-stopped
+    environment:
+      - SERVER_TYPE=${SERVER_TYPE:-Threadpool}
+      - CACHE_TYPE=${CACHE_TYPE:-LRUCache}
+      - PROXY_PORT=${PROXY_PORT:-8080}
+      - THREAD_COUNT=${THREAD_COUNT:-25}
+      - CACHE_SIZE=${CACHE_SIZE:-100}
+
+  # Legacy services (kept for backward compatibility, but optional)
   # ThreadPool + LRU Cache (Default)
   proxy-threadpool-lru:
     build: .
@@ -9,6 +28,7 @@ services:
     command: ["Threadpool", "LRUCache", "8080", "25", "100"]
     container_name: proxy-threadpool-lru
     restart: unless-stopped
+    profiles: ["legacy"]
 
   # ThreadPool + LFU Cache
   proxy-threadpool-lfu:
@@ -18,7 +38,7 @@ services:
     command: ["Threadpool", "LFUCache", "8081", "25", "100"]
     container_name: proxy-threadpool-lfu
     restart: unless-stopped
-    profiles: ["threadpool-lfu"]
+    profiles: ["legacy", "threadpool-lfu"]
 
   # Semaphore + LRU Cache
   proxy-semaphore-lru:
@@ -28,7 +48,7 @@ services:
     command: ["Semaphore", "LRUCache", "8082", "30", "150"]
     container_name: proxy-semaphore-lru
     restart: unless-stopped
-    profiles: ["semaphore-lru"]
+    profiles: ["legacy", "semaphore-lru"]
 
   # Semaphore + LFU Cache
   proxy-semaphore-lfu:
@@ -38,7 +58,7 @@ services:
     command: ["Semaphore", "LFUCache", "8083", "30", "150"]
     container_name: proxy-semaphore-lfu
     restart: unless-stopped
-    profiles: ["semaphore-lfu"]
+    profiles: ["legacy", "semaphore-lfu"]
 
   # High Performance Configuration
   proxy-high-perf:
@@ -48,4 +68,4 @@ services:
     command: ["Threadpool", "LRUCache", "8090", "50", "500"]
     container_name: proxy-high-perf
     restart: unless-stopped
-    profiles: ["high-perf"]
+    profiles: ["legacy", "high-perf"]
