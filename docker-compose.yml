@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  # ThreadPool + LRU Cache (Default)
+  proxy-threadpool-lru:
+    build: .
+    ports:
+      - "8080:8080"
+    command: ["Threadpool", "LRUCache", "8080", "25", "100"]
+    container_name: proxy-threadpool-lru
+    restart: unless-stopped
+
+  # ThreadPool + LFU Cache
+  proxy-threadpool-lfu:
+    build: .
+    ports:
+      - "8081:8081"
+    command: ["Threadpool", "LFUCache", "8081", "25", "100"]
+    container_name: proxy-threadpool-lfu
+    restart: unless-stopped
+    profiles: ["threadpool-lfu"]
+
+  # Semaphore + LRU Cache
+  proxy-semaphore-lru:
+    build: .
+    ports:
+      - "8082:8082"
+    command: ["Semaphore", "LRUCache", "8082", "30", "150"]
+    container_name: proxy-semaphore-lru
+    restart: unless-stopped
+    profiles: ["semaphore-lru"]
+
+  # Semaphore + LFU Cache
+  proxy-semaphore-lfu:
+    build: .
+    ports:
+      - "8083:8083"
+    command: ["Semaphore", "LFUCache", "8083", "30", "150"]
+    container_name: proxy-semaphore-lfu
+    restart: unless-stopped
+    profiles: ["semaphore-lfu"]
+
+  # High Performance Configuration
+  proxy-high-perf:
+    build: .
+    ports:
+      - "8090:8090"
+    command: ["Threadpool", "LRUCache", "8090", "50", "500"]
+    container_name: proxy-high-perf
+    restart: unless-stopped
+    profiles: ["high-perf"]
