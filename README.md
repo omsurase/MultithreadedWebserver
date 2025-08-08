@@ -1,201 +1,161 @@
 # Multithreaded HTTP Proxy Server
 
-A high-performance multithreaded HTTP proxy server in C++ with multiple server implementations and caching strategies.
+A high-performance multithreaded HTTP proxy server implemented in C++ with configurable server architectures and intelligent caching strategies.
+
+## What It Does
+
+This proxy server acts as an intermediary between clients and web servers, forwarding HTTP requests and caching responses for improved performance. It supports multiple concurrent connections and implements intelligent caching to reduce response times for frequently requested content.
 
 ## Features
 
-- **Server Types**: ThreadPool-based and Semaphore-based implementations
-- **Caching Strategies**: LRU (Least Recently Used) and LFU (Least Frequently Used)
-- **Configurable**: Adjustable thread count and cache size
-- **Docker Ready**: Easy deployment with Docker Compose
+- **Multiple Server Architectures**: ThreadPool-based and Semaphore-based concurrency models
+- **Intelligent Caching**: LRU (Least Recently Used) and LFU (Least Frequently Used) cache strategies
+- **Runtime Configuration**: Fully configurable via environment variables or `.env` files
+- **High Performance**: Optimized for concurrent request handling
+- **Docker Ready**: Containerized deployment with Docker Compose
 
 ## Quick Start
 
-### Start Default Server (ThreadPool + LRU Cache)
+### Method 1: Using Predefined Default Values
+
+Start the server with default configuration (ThreadPool server, LRU cache, port 8080, 25 threads, cache size 100):
 
 ```bash
-docker compose up -d
-```
+# Start server with defaults
+docker compose up proxy-server
 
-### Start Specific Server Configurations
+# Start in detached mode
+docker compose up -d proxy-server
 
-```bash
-# ThreadPool + LFU Cache on port 8081
-docker compose --profile threadpool-lfu up -d
+# View logs
+docker compose logs -f proxy-server
 
-# Semaphore + LRU Cache on port 8082
-docker compose --profile semaphore-lru up -d
-
-# Semaphore + LFU Cache on port 8083
-docker compose --profile semaphore-lfu up -d
-
-# High Performance (50 threads, 500 cache size) on port 8090
-docker compose --profile high-perf up -d
-```
-
-### Stop Services
-
-```bash
-# Stop default service
+# Stop server
 docker compose down
-
-# Stop specific profiles
-docker compose --profile threadpool-lfu down
-docker compose --profile semaphore-lru down
-docker compose --profile semaphore-lfu down
-docker compose --profile high-perf down
-
-# Stop all running services
-docker compose down --remove-orphans
 ```
+
+### Method 2: Using Custom Values with .env File
+
+1. **Create your configuration file:**
+```bash
+cp docker.env.example .env
+```
+
+2. **Edit `.env` with your settings:**
+
+For **development** setup:
+```bash
+SERVER_TYPE=Threadpool
+CACHE_TYPE=LRUCache
+PROXY_PORT=8080
+THREAD_COUNT=10
+CACHE_SIZE=50
+CONTAINER_NAME=dev-proxy
+```
+
+For **production** setup:
+```bash
+SERVER_TYPE=Threadpool
+CACHE_TYPE=LFUCache
+PROXY_PORT=8080
+THREAD_COUNT=50
+CACHE_SIZE=500
+CONTAINER_NAME=prod-proxy
+```
+
+For **semaphore-based** setup:
+```bash
+SERVER_TYPE=Semaphore
+CACHE_TYPE=LRUCache
+PROXY_PORT=8082
+THREAD_COUNT=30
+CACHE_SIZE=200
+CONTAINER_NAME=semaphore-proxy
+```
+
+3. **Start the server:**
+```bash
+# Start with your .env configuration
+docker compose up -d proxy-server
+
+# View logs
+docker compose logs -f proxy-server
+
+# Stop server
+docker compose down
+```
+
+## Configuration Options
+
+| Variable | Options | Default | Description |
+|----------|---------|---------|-------------|
+| SERVER_TYPE | `Threadpool`, `Semaphore` | `Threadpool` | Server concurrency model |
+| CACHE_TYPE | `LRUCache`, `LFUCache` | `LRUCache` | Cache eviction strategy |
+| PROXY_PORT | Any valid port | `8080` | Port to run the server on |
+| THREAD_COUNT | Positive integer | `25` | Number of threads/semaphores |
+| CACHE_SIZE | Positive integer | `100` | Maximum cache entries |
+| CONTAINER_NAME | String | `proxy-server` | Docker container name |
 
 ## Testing the Proxy Server
 
-### Basic Testing
-
-Test the default server (port 8080):
+### Basic Functionality Test
 
 ```bash
-# Test basic functionality
+# Test basic proxy functionality
 curl "http://localhost:8080/http://example.com"
 curl "http://localhost:8080/http://httpbin.org/json"
-curl "http://localhost:8080/http://www.google.com"
 
 # Test cache hits (repeat same URL)
 curl "http://localhost:8080/http://example.com"  # Should be cached
-curl "http://localhost:8080/http://httpbin.org/json"  # Should be cached
-```
-
-### Testing Different Server Configurations
-
-```bash
-# Test ThreadPool + LFU (port 8081)
-docker compose --profile threadpool-lfu up -d
-curl "http://localhost:8081/http://example.com"
-curl "http://localhost:8081/http://httpbin.org/headers"
-curl "http://localhost:8081/http://example.com"  # Cache hit
-
-# Test Semaphore + LRU (port 8082)
-docker compose --profile semaphore-lru up -d
-curl "http://localhost:8082/http://www.wikipedia.org"
-curl "http://localhost:8082/http://httpbin.org/ip"
-curl "http://localhost:8082/http://www.wikipedia.org"  # Cache hit
-
-# Test High Performance (port 8090)
-docker compose --profile high-perf up -d
-curl "http://localhost:8090/http://example.com"
-curl "http://localhost:8090/http://httpbin.org/user-agent"
 ```
 
 ### Performance Testing
 
 ```bash
-# Test multiple concurrent requests
+# Test concurrent requests
 for i in {1..10}; do
   curl "http://localhost:8080/http://httpbin.org/delay/1" &
 done
 wait
 
-# Test cache performance with repeated requests
+# Test cache performance
 for i in {1..5}; do
   curl "http://localhost:8080/http://example.com"
 done
 ```
 
-### View Logs
+## Advanced Examples
 
-Monitor server activity and cache performance:
+### Command Line Environment Variables
 
-```bash
-# View logs for configurable server
-docker compose logs -f proxy-server
-
-# View logs for legacy configurations
-docker compose --profile legacy logs -f proxy-threadpool-lru
-docker compose --profile legacy logs -f proxy-high-perf
-```
-
-## Runtime Configuration (Recommended)
-
-The new configurable approach allows you to specify server parameters at runtime using environment variables:
-
-### Quick Start with Environment Variables
+You can also override settings directly from the command line:
 
 ```bash
-# Basic usage with default settings (Threadpool, LRUCache, port 8080, 25 threads, cache size 100)
-docker compose up proxy-server
-
-# Custom configuration using environment variables
+# Custom configuration with inline environment variables
 SERVER_TYPE=Semaphore CACHE_TYPE=LFUCache PROXY_PORT=8082 THREAD_COUNT=30 CACHE_SIZE=150 docker compose up proxy-server
 
 # High performance configuration
-SERVER_TYPE=Threadpool CACHE_TYPE=LRUCache PROXY_PORT=8080 THREAD_COUNT=50 CACHE_SIZE=500 docker compose up proxy-server
+SERVER_TYPE=Threadpool CACHE_TYPE=LFUCache PROXY_PORT=8080 THREAD_COUNT=100 CACHE_SIZE=1000 docker compose up proxy-server
+
+# Development configuration
+SERVER_TYPE=Threadpool CACHE_TYPE=LRUCache PROXY_PORT=3000 THREAD_COUNT=5 CACHE_SIZE=25 docker compose up proxy-server
 ```
 
-### Using .env File
+## Architecture
 
-1. Copy the example environment file:
-```bash
-cp docker.env.example .env
-```
+- **ThreadPool Server**: Uses a pool of worker threads to handle requests concurrently
+- **Semaphore Server**: Uses semaphores to control concurrent request processing
+- **LRU Cache**: Evicts least recently used items when cache is full
+- **LFU Cache**: Evicts least frequently used items when cache is full
 
-2. Edit `.env` with your preferred settings:
-```bash
-SERVER_TYPE=Threadpool
-CACHE_TYPE=LRUCache
-PROXY_PORT=8080
-THREAD_COUNT=25
-CACHE_SIZE=100
-CONTAINER_NAME=my-proxy-server
-```
+## Legacy Support
 
-3. Start the server:
-```bash
-docker compose up proxy-server
-```
-
-### Configuration Options
-
-| Variable | Options | Default | Description |
-|----------|---------|---------|-------------|
-| SERVER_TYPE | Threadpool, Semaphore | Threadpool | Server concurrency model |
-| CACHE_TYPE | LRUCache, LFUCache | LRUCache | Cache eviction strategy |
-| PROXY_PORT | Any valid port | 8080 | Port to run the server on |
-| THREAD_COUNT | Positive integer | 25 | Number of threads/semaphores |
-| CACHE_SIZE | Positive integer | 100 | Maximum cache entries |
-| CONTAINER_NAME | String | proxy-server | Docker container name |
-
-### Examples
+For backward compatibility, preset configurations are available using Docker Compose profiles:
 
 ```bash
-# Development setup
-SERVER_TYPE=Threadpool CACHE_TYPE=LRUCache PROXY_PORT=3000 THREAD_COUNT=10 CACHE_SIZE=50 docker compose up proxy-server
-
-# Production setup
-SERVER_TYPE=Threadpool CACHE_TYPE=LFUCache PROXY_PORT=80 THREAD_COUNT=100 CACHE_SIZE=1000 docker compose up proxy-server
-
-# Testing semaphore-based server
-SERVER_TYPE=Semaphore CACHE_TYPE=LRUCache PROXY_PORT=8081 THREAD_COUNT=20 CACHE_SIZE=200 docker compose up proxy-server
-```
-
-## Legacy Server Configurations
-
-The following preset configurations are still available using profiles for backward compatibility:
-
-| Service | Server Type | Cache Type | Port | Threads | Cache Size | Profile |
-|---------|-------------|------------|------|---------|------------|---------|
-| proxy-threadpool-lru | ThreadPool | LRU | 8080 | 25 | 100 | legacy |
-| proxy-threadpool-lfu | ThreadPool | LFU | 8081 | 25 | 100 | legacy, threadpool-lfu |
-| proxy-semaphore-lru | Semaphore | LRU | 8082 | 30 | 150 | legacy, semaphore-lru |
-| proxy-semaphore-lfu | Semaphore | LFU | 8083 | 30 | 150 | legacy, semaphore-lfu |
-| proxy-high-perf | ThreadPool | LRU | 8090 | 50 | 500 | legacy, high-perf |
-
-### Using Legacy Configurations
-
-```bash
-# Run all legacy services
-docker compose --profile legacy up
-
-# Run specific legacy configuration
-docker compose --profile threadpool-lfu up proxy-threadpool-lfu
+# Available legacy profiles
+docker compose --profile legacy up                    # All legacy services
+docker compose --profile threadpool-lfu up           # ThreadPool + LFU
+docker compose --profile semaphore-lru up            # Semaphore + LRU
+docker compose --profile high-perf up                # High performance preset
 ```
